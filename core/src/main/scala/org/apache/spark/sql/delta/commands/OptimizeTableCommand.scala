@@ -19,8 +19,6 @@ package org.apache.spark.sql.delta.commands
 import java.util.ConcurrentModificationException
 
 import scala.collection.mutable.ArrayBuffer
-import scala.collection.parallel.ForkJoinTaskSupport
-import scala.collection.parallel.immutable.ParVector
 
 import org.apache.spark.sql.delta.skipping.MultiDimClustering
 import org.apache.spark.sql.delta._
@@ -42,6 +40,7 @@ import org.apache.spark.sql.execution.metric.SQLMetric
 import org.apache.spark.sql.execution.metric.SQLMetrics.createMetric
 import org.apache.spark.sql.types._
 import org.apache.spark.util.{SystemClock, ThreadUtils}
+import org.apache.spark.sql.Column
 
 /** Base class defining abstract optimize command */
 abstract class OptimizeTableCommandBase extends RunnableCommand with DeltaCommand {
@@ -303,7 +302,7 @@ class OptimizeExecutor(
       MultiDimClustering.cluster(
         input,
         approxNumFiles,
-        zOrderByColumns)
+        zOrderByColumns).sortWithinPartitions(zOrderByColumns.map(Column(_)) : _*)
     } else {
       val useRepartition = sparkSession.sessionState.conf.getConf(
         DeltaSQLConf.DELTA_OPTIMIZE_REPARTITION_ENABLED)
