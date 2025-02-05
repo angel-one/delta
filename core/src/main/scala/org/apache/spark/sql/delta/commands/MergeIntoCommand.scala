@@ -1050,7 +1050,7 @@ case class MergeIntoCommand(
     if (partitionColumns.nonEmpty && spark.conf.get(DeltaSQLConf.MERGE_REPARTITION_BEFORE_WRITE)) {
       df.repartition(partitionColumns.map(col): _*)
     } else {
-      df
+      df.coalesce(4)
     }
   }
 
